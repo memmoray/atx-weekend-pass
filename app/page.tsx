@@ -52,7 +52,7 @@ export default function Page() {
           </div>
           <div className="relative mx-auto w-full max-w-[580px] lg:mx-0">
             <div className="overflow-hidden rounded-[30px] border-[3px] border-[#1d2924] bg-[#5bd6c5] p-2 shadow-[8px_10px_0_#1d2924] rotate-[1.5deg]">
-              <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Figma1-pMxU599kyhmh8oroLOd3kg6rBfmKDN.png" alt="Friends enjoying an Austin weekend" className="aspect-[1.6] w-full rounded-[23px] object-cover object-right-top" />
+              <img src="/atx-weekend-friends.jpg" alt="Four friends enjoying drinks in front of an Austin mural" className="aspect-[1.6] w-full rounded-[23px] object-cover object-right-top" />
             </div>
             <div className="absolute bottom-[-17px] right-[-2px] rounded-xl border-2 border-[#1d2924] bg-white px-3 py-2 text-[11px] shadow-[3px_4px_0_#1d2924] sm:right-5"><span className="font-black uppercase tracking-[0.1em] text-[#f24c39]">Crew approved</span><br /><strong>4 friends are in</strong></div>
           </div>
