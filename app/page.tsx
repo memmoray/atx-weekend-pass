@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Coffee, Moon, Sun } from 'lucide-react'
+import { Coffee, Moon, Sun, Shuffle, Plus, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 const vibes = [
@@ -28,10 +28,36 @@ const itineraries = {
   ],
 } as const
 
+type CustomStop = {
+  time: string
+  clock: string
+  title: string
+  detail: string
+  price: number
+  icon: typeof Coffee
+  color: 'amber' | 'mint' | 'lilac'
+}
+
+const customDefaults: CustomStop[] = [
+  { time: 'MORNING', clock: '9:30 AM', title: 'Your morning stop', detail: 'Add a favorite breakfast spot', price: 18, icon: Coffee, color: 'amber' },
+  { time: 'AFTERNOON', clock: '2:00 PM', title: 'Your afternoon stop', detail: 'Add a favorite daytime plan', price: 24, icon: Sun, color: 'mint' },
+  { time: 'NIGHT', clock: '8:00 PM', title: 'Your night stop', detail: 'Add a favorite evening plan', price: 32, icon: Moon, color: 'lilac' },
+]
+
 export default function Page() {
   const [vibe, setVibe] = useState<(typeof vibes)[number]['id']>('classic')
-  const stops = itineraries[vibe]
+  const [isCustom, setIsCustom] = useState(false)
+  const [customStops, setCustomStops] = useState(customDefaults)
+  const stops = isCustom ? customStops : itineraries[vibe]
   const total = useMemo(() => stops.reduce((sum, stop) => sum + stop.price, 0), [stops])
+  const switchVibe = () => {
+    const next = vibes[(vibes.findIndex((item) => item.id === vibe) + 1) % vibes.length]
+    setIsCustom(false)
+    setVibe(next.id)
+  }
+  const updateCustomStop = (index: number, field: 'title' | 'detail' | 'price', value: string) => {
+    setCustomStops((current) => current.map((stop, stopIndex) => stopIndex === index ? { ...stop, [field]: field === 'price' ? Number(value) || 0 : value } : stop))
+  }
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#fff7e9] text-[#18221e]">
@@ -61,8 +87,13 @@ export default function Page() {
         <section className="rounded-[24px] border border-[#ded8ce] bg-[#fffdfa] p-4 sm:p-5" aria-labelledby="vibe-heading">
           <div className="mb-3 flex items-center justify-between px-1"><h2 id="vibe-heading" className="text-[11px] font-bold uppercase tracking-[0.15em] text-[#6f7972]">Pick the group vibe</h2><span className="text-[10px] font-bold text-[#f24c39]">Step 1 of 2</span></div>
           <div className="grid grid-cols-3 gap-2">
-            {vibes.map((item) => <button key={item.id} onClick={() => setVibe(item.id)} aria-pressed={vibe === item.id} className={`min-h-[68px] rounded-2xl border px-3 py-3 text-left transition ${vibe === item.id ? 'border-[#1d2924] bg-[#1d2924] text-white shadow-[0_5px_0_#50d5c1]' : 'border-[#d9d1c5] bg-white hover:border-[#1d2924]'}`}><span className="block text-[13px] font-bold">{item.label}</span><span className={`mt-1 block text-[10px] ${vibe === item.id ? 'text-[#b7c1bb]' : 'text-[#818a84]'}`}>{item.detail}</span></button>)}
+            {vibes.map((item) => <button key={item.id} onClick={() => { setVibe(item.id); setIsCustom(false) }} aria-pressed={!isCustom && vibe === item.id} className={`min-h-[68px] rounded-2xl border px-3 py-3 text-left transition ${!isCustom && vibe === item.id ? 'border-[#1d2924] bg-[#1d2924] text-white shadow-[0_5px_0_#50d5c1]' : 'border-[#d9d1c5] bg-white hover:border-[#1d2924]'}`}><span className="block text-[13px] font-bold">{item.label}</span><span className={`mt-1 block text-[10px] ${!isCustom && vibe === item.id ? 'text-[#b7c1bb]' : 'text-[#818a84]'}`}>{item.detail}</span></button>)}
           </div>
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+            <Button type="button" variant="outline" className="h-10 flex-1 rounded-xl border-[#d9d1c5] bg-white text-xs" onClick={switchVibe}><Shuffle data-icon="inline-start" />Switch it up</Button>
+            <Button type="button" variant="outline" className={`h-10 flex-1 rounded-xl text-xs ${isCustom ? 'border-[#1d2924] bg-[#e7f8f3]' : 'border-[#d9d1c5] bg-white'}`} onClick={() => setIsCustom((current) => !current)}>{isCustom ? <X data-icon="inline-start" /> : <Plus data-icon="inline-start" />}{isCustom ? 'Close custom itinerary' : 'Build a custom itinerary'}</Button>
+          </div>
+          {isCustom && <div className="mt-4 grid gap-3 rounded-2xl bg-[#f7f1e7] p-3 sm:grid-cols-3">{customStops.map((stop, index) => <div key={stop.time} className="grid gap-2"><span className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-[#f24c39]">{stop.time}</span><input aria-label={`${stop.time} stop name`} value={stop.title} onChange={(event) => updateCustomStop(index, 'title', event.target.value)} className="h-9 rounded-lg border border-[#d9d1c5] bg-white px-2 text-xs" /><input aria-label={`${stop.time} stop detail`} value={stop.detail} onChange={(event) => updateCustomStop(index, 'detail', event.target.value)} className="h-9 rounded-lg border border-[#d9d1c5] bg-white px-2 text-xs" /><div className="relative"><span className="absolute left-2 top-2 text-xs text-[#7e8881]">$</span><input aria-label={`${stop.time} stop price`} type="number" min="0" value={stop.price} onChange={(event) => updateCustomStop(index, 'price', event.target.value)} className="h-9 w-full rounded-lg border border-[#d9d1c5] bg-white pl-5 pr-2 text-xs" /></div></div>)}</div>}
         </section>
 
         <section className="mt-5 overflow-hidden rounded-[28px] border-2 border-[#1d2924] bg-[#fffdfa] shadow-[8px_9px_0_#1d2924]" aria-labelledby="itinerary-heading">
