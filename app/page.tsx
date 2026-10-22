@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Coffee, Moon, Sun } from 'lucide-react'
+import { Coffee, Moon, RefreshCw, Sparkles, Sun } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 const vibes = [
@@ -12,26 +12,75 @@ const vibes = [
 
 const itineraries = {
   chill: [
-    { time: 'MORNING', clock: '9:30 AM', title: 'Breakfast tacos at Veracruz', detail: 'Two tacos + agua fresca', price: 14, icon: Coffee, color: 'amber' },
-    { time: 'AFTERNOON', clock: '2:00 PM', title: 'South Congress stroll', detail: 'Boots, murals + local treats', price: 22, icon: Sun, color: 'mint' },
-    { time: 'NIGHT', clock: '8:00 PM', title: 'Two-step at The White Horse', detail: 'Cover + first round', price: 30, icon: Moon, color: 'lilac' },
+    [
+      { time: 'MORNING', clock: '9:30 AM', title: 'Breakfast tacos at Veracruz', detail: 'Two tacos + agua fresca', price: 14, icon: Coffee, color: 'amber' },
+      { time: 'AFTERNOON', clock: '2:00 PM', title: 'South Congress stroll', detail: 'Boots, murals + local treats', price: 22, icon: Sun, color: 'mint' },
+      { time: 'NIGHT', clock: '8:00 PM', title: 'Two-step at The White Horse', detail: 'Cover + first round', price: 30, icon: Moon, color: 'lilac' },
+    ],
+    [
+      { time: 'MORNING', clock: '10:00 AM', title: 'Coffee + pastries at Civil Goat', detail: 'Slow start, strong coffee', price: 12, icon: Coffee, color: 'amber' },
+      { time: 'AFTERNOON', clock: '1:30 PM', title: 'Kayak Lady Bird Lake', detail: 'Easy paddle with skyline views', price: 28, icon: Sun, color: 'mint' },
+      { time: 'NIGHT', clock: '7:30 PM', title: 'Live music at Radio Coffee', detail: 'Patio hangs + local acts', price: 24, icon: Moon, color: 'lilac' },
+    ],
   ],
   classic: [
-    { time: 'MORNING', clock: '9:30 AM', title: 'Breakfast tacos at Veracruz', detail: 'Two tacos + agua fresca', price: 14, icon: Coffee, color: 'amber' },
-    { time: 'AFTERNOON', clock: '2:00 PM', title: 'South Congress stroll', detail: 'Boots, murals + local treats', price: 22, icon: Sun, color: 'mint' },
-    { time: 'NIGHT', clock: '8:00 PM', title: 'Two-step at The White Horse', detail: 'Cover + first round', price: 30, icon: Moon, color: 'lilac' },
+    [
+      { time: 'MORNING', clock: '9:30 AM', title: 'Breakfast tacos at Veracruz', detail: 'Two tacos + agua fresca', price: 14, icon: Coffee, color: 'amber' },
+      { time: 'AFTERNOON', clock: '2:00 PM', title: 'South Congress stroll', detail: 'Boots, murals + local treats', price: 22, icon: Sun, color: 'mint' },
+      { time: 'NIGHT', clock: '8:00 PM', title: 'Two-step at The White Horse', detail: 'Cover + first round', price: 30, icon: Moon, color: 'lilac' },
+    ],
+    [
+      { time: 'MORNING', clock: '9:00 AM', title: 'Brunch at Paperboy', detail: 'The classic Austin morning', price: 24, icon: Coffee, color: 'amber' },
+      { time: 'AFTERNOON', clock: '1:00 PM', title: 'Barton Springs dip', detail: 'A swim, sunshine + snacks', price: 18, icon: Sun, color: 'mint' },
+      { time: 'NIGHT', clock: '8:30 PM', title: 'Tacos + tunes on Rainey', detail: 'Three stops, zero decisions', price: 38, icon: Moon, color: 'lilac' },
+    ],
   ],
   out: [
-    { time: 'MORNING', clock: '9:30 AM', title: 'Breakfast tacos at Veracruz', detail: 'Two tacos + agua fresca', price: 18, icon: Coffee, color: 'amber' },
-    { time: 'AFTERNOON', clock: '2:00 PM', title: 'South Congress stroll', detail: 'Boots, murals + local treats', price: 28, icon: Sun, color: 'mint' },
-    { time: 'NIGHT', clock: '8:00 PM', title: 'Two-step at The White Horse', detail: 'Cover + first round', price: 42, icon: Moon, color: 'lilac' },
+    [
+      { time: 'MORNING', clock: '9:30 AM', title: 'Breakfast tacos at Veracruz', detail: 'Two tacos + agua fresca', price: 18, icon: Coffee, color: 'amber' },
+      { time: 'AFTERNOON', clock: '2:00 PM', title: 'South Congress stroll', detail: 'Boots, murals + local treats', price: 28, icon: Sun, color: 'mint' },
+      { time: 'NIGHT', clock: '8:00 PM', title: 'Two-step at The White Horse', detail: 'Cover + first round', price: 42, icon: Moon, color: 'lilac' },
+    ],
+    [
+      { time: 'MORNING', clock: '8:30 AM', title: 'BBQ brunch at Franklin', detail: 'The early line is worth it', price: 32, icon: Coffee, color: 'amber' },
+      { time: 'AFTERNOON', clock: '3:00 PM', title: 'Lake Travis boat day', detail: 'Sun, water + a floating picnic', price: 65, icon: Sun, color: 'mint' },
+      { time: 'NIGHT', clock: '9:00 PM', title: 'Dancing at The White Horse', detail: 'Late night, big energy', price: 48, icon: Moon, color: 'lilac' },
+    ],
   ],
 } as const
 
 export default function Page() {
-  const [vibe, setVibe] = useState<(typeof vibes)[number]['id']>('classic')
-  const stops = itineraries[vibe]
+  const [vibe, setVibe] = useState<(typeof vibes)[number]['id'] | 'custom'>('classic')
+  const [customVibe, setCustomVibe] = useState('')
+  const [itineraryIndex, setItineraryIndex] = useState(0)
+  const [isGenerating, setIsGenerating] = useState(false)
+  const stops = useMemo(() => {
+    if (vibe === 'custom') {
+      const options = itineraries.classic
+      return options[(itineraryIndex + customVibe.length) % options.length]
+    }
+    return itineraries[vibe][itineraryIndex % itineraries[vibe].length]
+  }, [customVibe.length, itineraryIndex, vibe])
   const total = useMemo(() => stops.reduce((sum, stop) => sum + stop.price, 0), [stops])
+  const updateItinerary = () => {
+    if (isGenerating) return
+    setIsGenerating(true)
+    window.setTimeout(() => {
+      setItineraryIndex((current) => current + 1)
+      setIsGenerating(false)
+    }, 500)
+  }
+
+  const applyCustomVibe = () => {
+    const nextVibe = customVibe.trim()
+    if (!nextVibe || isGenerating) return
+    setIsGenerating(true)
+    setVibe('custom')
+    window.setTimeout(() => {
+      setItineraryIndex((current) => current + 1)
+      setIsGenerating(false)
+    }, 500)
+  }
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#fff7e9] text-[#18221e]">
@@ -60,13 +109,17 @@ export default function Page() {
 
         <section className="rounded-[24px] border border-[#ded8ce] bg-[#fffdfa] p-4 sm:p-5" aria-labelledby="vibe-heading">
           <div className="mb-3 flex items-center justify-between px-1"><h2 id="vibe-heading" className="text-[11px] font-bold uppercase tracking-[0.15em] text-[#6f7972]">Pick the group vibe</h2><span className="text-[10px] font-bold text-[#f24c39]">Step 1 of 2</span></div>
-          <div className="grid grid-cols-3 gap-2">
-            {vibes.map((item) => <button key={item.id} onClick={() => setVibe(item.id)} aria-pressed={vibe === item.id} className={`min-h-[68px] rounded-2xl border px-3 py-3 text-left transition ${vibe === item.id ? 'border-[#1d2924] bg-[#1d2924] text-white shadow-[0_5px_0_#50d5c1]' : 'border-[#d9d1c5] bg-white hover:border-[#1d2924]'}`}><span className="block text-[13px] font-bold">{item.label}</span><span className={`mt-1 block text-[10px] ${vibe === item.id ? 'text-[#b7c1bb]' : 'text-[#818a84]'}`}>{item.detail}</span></button>)}
+          <div className="flex flex-wrap items-center gap-2">
+            {vibes.map((item) => <button key={item.id} onClick={() => setVibe(item.id)} aria-pressed={vibe === item.id} className={`rounded-full border px-4 py-2.5 text-[12px] font-bold transition ${vibe === item.id ? 'border-[#1d2924] bg-[#1d2924] text-white shadow-[0_4px_0_#50d5c1]' : 'border-[#d9d1c5] bg-white hover:border-[#1d2924]'}`}>{item.label}</button>)}
+            <div className={`flex min-w-[220px] flex-1 items-center rounded-full border bg-white p-1 transition ${vibe === 'custom' ? 'border-[#1d2924] shadow-[0_4px_0_#50d5c1]' : 'border-[#d9d1c5]'}`}>
+              <input value={customVibe} onChange={(event) => setCustomVibe(event.target.value)} onKeyDown={(event) => { if (event.nativeEvent.isComposing || event.keyCode === 229) return; if (event.key === 'Enter') applyCustomVibe() }} aria-label="Custom group vibe" placeholder="Custom vibe..." className="min-w-0 flex-1 bg-transparent px-3 py-1.5 text-[12px] font-semibold outline-none placeholder:text-[#9aa29d]" />
+              <Button type="button" size="sm" onClick={applyCustomVibe} disabled={!customVibe.trim() || isGenerating} aria-label="Apply custom vibe" className="size-8 rounded-full bg-[#ffd34c] p-0 text-[#1d2924] hover:bg-[#ffdf72] disabled:opacity-60"><Sparkles data-icon="inline-start" className={isGenerating && vibe === 'custom' ? 'animate-spin' : undefined} /></Button>
+            </div>
           </div>
         </section>
 
         <section className="mt-5 overflow-hidden rounded-[28px] border-2 border-[#1d2924] bg-[#fffdfa] shadow-[8px_9px_0_#1d2924]" aria-labelledby="itinerary-heading">
-          <div className="flex items-center justify-between border-b border-[#e2ddd3] px-5 py-5 sm:px-7"><div><span className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#f24c39]">Saturday</span><h2 id="itinerary-heading" className="mt-1 text-[17px] font-extrabold">Your Austin itinerary</h2></div><span className="rounded-full bg-[#ffd34c] px-3 py-2 text-[11px] font-extrabold">3 stops</span></div>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e2ddd3] px-5 py-5 sm:px-7"><div><span className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#f24c39]">Saturday</span><h2 id="itinerary-heading" className="mt-1 text-[17px] font-extrabold">Your Austin itinerary</h2></div><div className="flex items-center gap-2"><Button type="button" variant="outline" size="sm" onClick={updateItinerary} disabled={isGenerating} aria-label="Show different itinerary options" className="rounded-full border-[#d9d1c5] bg-white text-[11px] font-bold disabled:opacity-70"><RefreshCw data-icon="inline-start" className={isGenerating ? 'animate-spin' : undefined} />{isGenerating ? 'Generating...' : 'Show different options'}</Button><span className="rounded-full bg-[#ffd34c] px-3 py-2 text-[11px] font-extrabold">3 stops</span></div></div>
           <div className="px-5 py-2 sm:px-7">{stops.map((stop, index) => { const Icon = stop.icon; return <div key={stop.time} className={`relative flex items-center gap-4 py-5 ${index < stops.length - 1 ? 'border-b border-[#e5dfd5]' : ''}`}><div className={`relative z-10 grid size-10 shrink-0 place-items-center rounded-xl ${stop.color === 'amber' ? 'bg-[#f2c27b]' : stop.color === 'mint' ? 'bg-[#9bcfc0]' : 'bg-[#b69bd3]'}`}><Icon size={18} strokeWidth={1.8} /></div><div className="min-w-0 flex-1"><div className="flex flex-wrap items-baseline gap-2 text-[10px] font-extrabold uppercase tracking-[0.16em] text-[#f24c39]"><span>{stop.time}</span><span className="font-medium tracking-normal text-[#7e8780]">{stop.clock}</span></div><h3 className="mt-1 truncate text-[15px] font-bold">{stop.title}</h3><p className="mt-1 text-[12px] text-[#78837c]">{stop.detail}</p></div><strong className="text-[14px]">${stop.price}</strong></div> })}</div>
           <div className="mx-5 mb-5 flex items-center justify-between rounded-[20px] bg-[#d9f3ee] px-5 py-4 sm:mx-7"><div><p className="text-[10px] font-extrabold uppercase tracking-[0.17em] text-[#33756b]">One price, whole day</p><p className="mt-1 text-[12px] text-[#5d7771]">Reservations and fees included for each guest</p></div><div className="flex items-baseline gap-1"><span className="text-[11px] text-[#5b6f69]">total</span><span className="font-serif text-[35px] font-black tracking-[-0.08em]">${total}</span></div></div>
         </section>
