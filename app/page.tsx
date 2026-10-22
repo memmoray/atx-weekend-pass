@@ -54,6 +54,7 @@ export default function Page() {
   const [vibe, setVibe] = useState<(typeof vibes)[number]['id']>('classic')
   const [customVibe, setCustomVibe] = useState('')
   const [itineraryIndex, setItineraryIndex] = useState(0)
+  const [isGenerating, setIsGenerating] = useState(false)
   const stops = useMemo(() => {
     if (vibe === 'custom') {
       const mood = customVibe.trim() || 'your crew'
@@ -66,7 +67,14 @@ export default function Page() {
     return itineraries[vibe][itineraryIndex % itineraries[vibe].length]
   }, [customVibe, itineraryIndex, vibe])
   const total = useMemo(() => stops.reduce((sum, stop) => sum + stop.price, 0), [stops])
-  const updateItinerary = () => setItineraryIndex((current) => current + 1)
+  const updateItinerary = () => {
+    if (isGenerating) return
+    setIsGenerating(true)
+    window.setTimeout(() => {
+      setItineraryIndex((current) => current + 1)
+      setIsGenerating(false)
+    }, 500)
+  }
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#fff7e9] text-[#18221e]">
@@ -102,7 +110,7 @@ export default function Page() {
         </section>
 
         <section className="mt-5 overflow-hidden rounded-[28px] border-2 border-[#1d2924] bg-[#fffdfa] shadow-[8px_9px_0_#1d2924]" aria-labelledby="itinerary-heading">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e2ddd3] px-5 py-5 sm:px-7"><div><span className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#f24c39]">Saturday</span><h2 id="itinerary-heading" className="mt-1 text-[17px] font-extrabold">Your Austin itinerary</h2></div><div className="flex items-center gap-2"><Button type="button" variant="outline" size="sm" onClick={updateItinerary} className="rounded-full border-[#d9d1c5] bg-white text-[11px] font-bold"><RefreshCw data-icon="inline-start" />New plan</Button><span className="rounded-full bg-[#ffd34c] px-3 py-2 text-[11px] font-extrabold">3 stops</span></div></div>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e2ddd3] px-5 py-5 sm:px-7"><div><span className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#f24c39]">Saturday</span><h2 id="itinerary-heading" className="mt-1 text-[17px] font-extrabold">Your Austin itinerary</h2></div><div className="flex items-center gap-2"><Button type="button" variant="outline" size="sm" onClick={updateItinerary} disabled={isGenerating} aria-label="Show different itinerary options" className="rounded-full border-[#d9d1c5] bg-white text-[11px] font-bold disabled:opacity-70"><RefreshCw data-icon="inline-start" className={isGenerating ? 'animate-spin' : undefined} />{isGenerating ? 'Generating...' : 'Show different options'}</Button><span className="rounded-full bg-[#ffd34c] px-3 py-2 text-[11px] font-extrabold">3 stops</span></div></div>
           <div className="px-5 py-2 sm:px-7">{stops.map((stop, index) => { const Icon = stop.icon; return <div key={stop.time} className={`relative flex items-center gap-4 py-5 ${index < stops.length - 1 ? 'border-b border-[#e5dfd5]' : ''}`}><div className={`relative z-10 grid size-10 shrink-0 place-items-center rounded-xl ${stop.color === 'amber' ? 'bg-[#f2c27b]' : stop.color === 'mint' ? 'bg-[#9bcfc0]' : 'bg-[#b69bd3]'}`}><Icon size={18} strokeWidth={1.8} /></div><div className="min-w-0 flex-1"><div className="flex flex-wrap items-baseline gap-2 text-[10px] font-extrabold uppercase tracking-[0.16em] text-[#f24c39]"><span>{stop.time}</span><span className="font-medium tracking-normal text-[#7e8780]">{stop.clock}</span></div><h3 className="mt-1 truncate text-[15px] font-bold">{stop.title}</h3><p className="mt-1 text-[12px] text-[#78837c]">{stop.detail}</p></div><strong className="text-[14px]">${stop.price}</strong></div> })}</div>
           <div className="mx-5 mb-5 flex items-center justify-between rounded-[20px] bg-[#d9f3ee] px-5 py-4 sm:mx-7"><div><p className="text-[10px] font-extrabold uppercase tracking-[0.17em] text-[#33756b]">One price, whole day</p><p className="mt-1 text-[12px] text-[#5d7771]">Reservations and fees included for each guest</p></div><div className="flex items-baseline gap-1"><span className="text-[11px] text-[#5b6f69]">total</span><span className="font-serif text-[35px] font-black tracking-[-0.08em]">${total}</span></div></div>
         </section>
