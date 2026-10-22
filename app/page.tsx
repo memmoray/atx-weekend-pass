@@ -8,7 +8,6 @@ const vibes = [
   { id: 'chill', label: 'Keep it chill', detail: 'Easy does it' },
   { id: 'classic', label: 'Austin classic', detail: 'Best of ATX' },
   { id: 'out', label: 'Go all out', detail: 'No curfew' },
-  { id: 'custom', label: 'Write our own', detail: 'Tell us the mood' },
 ] as const
 
 const itineraries = {
@@ -52,20 +51,9 @@ const itineraries = {
 
 export default function Page() {
   const [vibe, setVibe] = useState<(typeof vibes)[number]['id']>('classic')
-  const [customVibe, setCustomVibe] = useState('')
   const [itineraryIndex, setItineraryIndex] = useState(0)
   const [isGenerating, setIsGenerating] = useState(false)
-  const stops = useMemo(() => {
-    if (vibe === 'custom') {
-      const mood = customVibe.trim() || 'your crew'
-      return [
-        { time: 'MORNING', clock: '10:00 AM', title: `A ${mood} breakfast`, detail: 'Coffee, tacos + a relaxed start', price: 16, icon: Coffee, color: 'amber' },
-        { time: 'AFTERNOON', clock: '2:00 PM', title: `The ${mood} main event`, detail: 'A made-for-your-group Austin stop', price: 28, icon: Sun, color: 'mint' },
-        { time: 'NIGHT', clock: '8:00 PM', title: `A ${mood} night out`, detail: 'Music, drinks + a little adventure', price: 36, icon: Moon, color: 'lilac' },
-      ] as const
-    }
-    return itineraries[vibe][itineraryIndex % itineraries[vibe].length]
-  }, [customVibe, itineraryIndex, vibe])
+  const stops = useMemo(() => itineraries[vibe][itineraryIndex % itineraries[vibe].length], [itineraryIndex, vibe])
   const total = useMemo(() => stops.reduce((sum, stop) => sum + stop.price, 0), [stops])
   const updateItinerary = () => {
     if (isGenerating) return
@@ -106,7 +94,6 @@ export default function Page() {
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {vibes.map((item) => <button key={item.id} onClick={() => setVibe(item.id)} aria-pressed={vibe === item.id} className={`min-h-[68px] rounded-2xl border px-3 py-3 text-left transition ${vibe === item.id ? 'border-[#1d2924] bg-[#1d2924] text-white shadow-[0_5px_0_#50d5c1]' : 'border-[#d9d1c5] bg-white hover:border-[#1d2924]'}`}><span className="block text-[13px] font-bold">{item.label}</span><span className={`mt-1 block text-[10px] ${vibe === item.id ? 'text-[#b7c1bb]' : 'text-[#818a84]'}`}>{item.detail}</span></button>)}
           </div>
-          {vibe === 'custom' && <label className="mt-3 block"><span className="sr-only">Describe your group vibe</span><input value={customVibe} onChange={(event) => setCustomVibe(event.target.value)} placeholder="e.g. sunset swims, spicy food, live music..." className="h-12 w-full rounded-2xl border border-[#d9d1c5] bg-white px-4 text-[13px] outline-none placeholder:text-[#9aa19b] focus:border-[#1d2924] focus:ring-2 focus:ring-[#9bcfc0]" /></label>}
         </section>
 
         <section className="mt-5 overflow-hidden rounded-[28px] border-2 border-[#1d2924] bg-[#fffdfa] shadow-[8px_9px_0_#1d2924]" aria-labelledby="itinerary-heading">
