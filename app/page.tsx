@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Coffee, Moon, RefreshCw, Sun } from 'lucide-react'
+import { Coffee, Moon, RefreshCw, Sparkles, Sun } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 const vibes = [
@@ -50,14 +50,32 @@ const itineraries = {
 } as const
 
 export default function Page() {
-  const [vibe, setVibe] = useState<(typeof vibes)[number]['id']>('classic')
+  const [vibe, setVibe] = useState<(typeof vibes)[number]['id'] | 'custom'>('classic')
+  const [customVibe, setCustomVibe] = useState('')
   const [itineraryIndex, setItineraryIndex] = useState(0)
   const [isGenerating, setIsGenerating] = useState(false)
-  const stops = useMemo(() => itineraries[vibe][itineraryIndex % itineraries[vibe].length], [itineraryIndex, vibe])
+  const stops = useMemo(() => {
+    if (vibe === 'custom') {
+      const options = itineraries.classic
+      return options[(itineraryIndex + customVibe.length) % options.length]
+    }
+    return itineraries[vibe][itineraryIndex % itineraries[vibe].length]
+  }, [customVibe.length, itineraryIndex, vibe])
   const total = useMemo(() => stops.reduce((sum, stop) => sum + stop.price, 0), [stops])
   const updateItinerary = () => {
     if (isGenerating) return
     setIsGenerating(true)
+    window.setTimeout(() => {
+      setItineraryIndex((current) => current + 1)
+      setIsGenerating(false)
+    }, 500)
+  }
+
+  const applyCustomVibe = () => {
+    const nextVibe = customVibe.trim()
+    if (!nextVibe || isGenerating) return
+    setIsGenerating(true)
+    setVibe('custom')
     window.setTimeout(() => {
       setItineraryIndex((current) => current + 1)
       setIsGenerating(false)
@@ -91,8 +109,12 @@ export default function Page() {
 
         <section className="rounded-[24px] border border-[#ded8ce] bg-[#fffdfa] p-4 sm:p-5" aria-labelledby="vibe-heading">
           <div className="mb-3 flex items-center justify-between px-1"><h2 id="vibe-heading" className="text-[11px] font-bold uppercase tracking-[0.15em] text-[#6f7972]">Pick the group vibe</h2><span className="text-[10px] font-bold text-[#f24c39]">Step 1 of 2</span></div>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {vibes.map((item) => <button key={item.id} onClick={() => setVibe(item.id)} aria-pressed={vibe === item.id} className={`min-h-[68px] rounded-2xl border px-3 py-3 text-left transition ${vibe === item.id ? 'border-[#1d2924] bg-[#1d2924] text-white shadow-[0_5px_0_#50d5c1]' : 'border-[#d9d1c5] bg-white hover:border-[#1d2924]'}`}><span className="block text-[13px] font-bold">{item.label}</span><span className={`mt-1 block text-[10px] ${vibe === item.id ? 'text-[#b7c1bb]' : 'text-[#818a84]'}`}>{item.detail}</span></button>)}
+          <div className="flex flex-wrap items-center gap-2">
+            {vibes.map((item) => <button key={item.id} onClick={() => setVibe(item.id)} aria-pressed={vibe === item.id} className={`rounded-full border px-4 py-2.5 text-[12px] font-bold transition ${vibe === item.id ? 'border-[#1d2924] bg-[#1d2924] text-white shadow-[0_4px_0_#50d5c1]' : 'border-[#d9d1c5] bg-white hover:border-[#1d2924]'}`}>{item.label}</button>)}
+            <div className={`flex min-w-[220px] flex-1 items-center rounded-full border bg-white p-1 transition ${vibe === 'custom' ? 'border-[#1d2924] shadow-[0_4px_0_#50d5c1]' : 'border-[#d9d1c5]'}`}>
+              <input value={customVibe} onChange={(event) => setCustomVibe(event.target.value)} onKeyDown={(event) => { if (event.nativeEvent.isComposing || event.keyCode === 229) return; if (event.key === 'Enter') applyCustomVibe() }} aria-label="Custom group vibe" placeholder="Custom vibe..." className="min-w-0 flex-1 bg-transparent px-3 py-1.5 text-[12px] font-semibold outline-none placeholder:text-[#9aa29d]" />
+              <Button type="button" size="sm" onClick={applyCustomVibe} disabled={!customVibe.trim() || isGenerating} aria-label="Apply custom vibe" className="size-8 rounded-full bg-[#ffd34c] p-0 text-[#1d2924] hover:bg-[#ffdf72] disabled:opacity-60"><Sparkles data-icon="inline-start" className={isGenerating && vibe === 'custom' ? 'animate-spin' : undefined} /></Button>
+            </div>
           </div>
         </section>
 
